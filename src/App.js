@@ -1,63 +1,74 @@
 import React, { useEffect, useState } from "react";
 import "./App.css";
 import axios from "axios";
-import Greeting from "./greeting";
-
-const sahteData = {
-  date: "1997-01-21",
-  explanation:
-    "In Jules Verne's science fiction classic A Journey to the Center of the Earth, Professor Hardwigg and his fellow explorers encounter many strange and exciting wonders. What wonders lie at the center of our Galaxy? Astronomers now know of some of the bizarre objects which exist there, like vast dust clouds,\r bright young stars, swirling rings of gas, and possibly even a large black hole. Much of the Galactic center region is shielded from our view in visible light by the intervening dust and gas. But it can be explored using other forms of electromagnetic radiation, like radio, infrared, X-rays, and gamma rays. This beautiful high resolution image of the Galactic center region in infrared light was made by the SPIRIT III telescope onboard the Midcourse Space Experiment. The center itself appears as a bright spot near the middle of the roughly 1x3 degree field of view, the plane of the Galaxy is vertical, and the north galactic pole is towards the right. The picture is in false color - starlight appears blue while dust is greenish grey, tending to red in the cooler areas.",
-  hdurl: "https://apod.nasa.gov/apod/image/9701/galcen_msx_big.gif",
-  media_type: "image",
-  service_version: "v1",
-  title: "Journey to the Center of the Galaxy \r\nCredit:",
-  url: "https://apod.nasa.gov/apod/image/9701/galcen_msx.jpg",
-};
+import Img from "./Img.js";
+import Date from "./Date";
 
 function App() {
-  const [data, setData] = useState(sahteData);
-  const [showImg, setShowImg] = useState(false);
-  const [showExplanation, setShowExplantion] = useState(false);
+  const [data, setData] = useState({});
+  const [searchTerm, setSearchTerm] = useState("");
+  const [searchResult, setSearchResult] = useState([]);
 
   useEffect(() => {
-    console.log("Use Effect Kullanıldı");
-  }, [showExplanation, showImg]);
+    axios
+      .get(
+        "https://api.nasa.gov/planetary/apod?api_key=YEtdaCIKfjhx6J9tXQCjN9DmHM0rtvAFFD6pD0BT"
+      )
+      .then(function (response) {
+        console.log(response.data);
+        setData(response.data);
+      })
+      .catch(function (error) {
+        console.log(error);
+      });
+  }, []);
+
+  useEffect(() => {
+    const results = Object.values(data).filter((item) =>
+      item.toString().toLowerCase().includes(searchTerm.toLowerCase())
+    );
+    setSearchResult(results);
+  }, [searchTerm, data]);
 
   return (
-    <div className="App">
-      <Greeting date={data.date} />
+    <div className="lanet">
+      <div className="tutucu">
+        <div className="navbar">
+          <h1>Nasa APOD</h1>
+          <ul>
+            <li>Ana Sayfa</li>
+            <li>Arşiv</li>
+            <li>Takvim</li>
+            <li>SSS</li>
+            <li>Eğitim</li>
+            <li>APOD hakkında</li>
+            <li>İletişim</li>
+          </ul>
+        </div>
+        <div className="search-section">
+          <input
+            type="text"
+            placeholder="Search..."
+            value={searchTerm}
+            onChange={(e) => setSearchTerm(e.target.value)}
+          />
+          {searchTerm && searchResult.length > 0 && (
+            <div>
+              <h3>Search Results:</h3>
+              <ul>
+                {searchResult.map((result, index) => (
+                  <li key={index}>{result}</li>
+                ))}
+              </ul>
+            </div>
+          )}
+        </div>
+      </div>
 
-      <h1> {data.title} </h1>
-
-      <button
-        onClick={() => {
-          setShowImg(!showImg);
-        }}
-      >
-        Hide / Show IMG
-      </button>
-
-      <br />
-      <br />
-      <showHideImg />
-
-      {showImg && <img src={data.url} />}
-
-      <br />
-      <br />
-
-      <button
-        onClick={() => {
-          setShowExplantion(!showExplanation);
-        }}
-      >
-        Hide / Show Explanation
-      </button>
-
-      <br />
-      <br />
-
-      {showExplanation && <p>{data.explanation}</p>}
+      <div>
+        <Date date={data.date} />
+        <Img data={data} />
+      </div>
     </div>
   );
 }
